@@ -1,0 +1,6 @@
+trial_img,trial_audio,trial_visual
+./stimuli/1920x1080/set_1_1.jpg $ ./stimuli/1920x1080/set_1_2.jpg,./stimuli/Audio/passage1_woodpecker.mp3,./stimuli/Visual/passage_1.txt
+./stimuli/1920x1080/set_2_1.jpg $ ./stimuli/1920x1080/set_2_2.jpg,./stimuli/Audio/passage2_scientific_method.mp3,./stimuli/Visual/passage_2.txt
+./stimuli/1920x1080/set_3_1.jpg $ ./stimuli/1920x1080/set_3_2.jpg,./stimuli/Audio/passage3_writing_topic.mp3,./stimuli/Visual/passage_3.txt
+./stimuli/1920x1080/set_4_1.jpg $ ./stimuli/1920x1080/set_4_2.jpg,./stimuli/Audio/passage4_skateboarding.mp3,./stimuli/Visual/passage_4.txt
+./stimuli/1920x1080/set_5_1.jpg $ ./stimuli/1920x1080/set_5_2.jpg,./stimuli/Audio/passage5_eye_tracking.mp3,./stimuli/Visual/passage_5.txt
