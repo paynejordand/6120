@@ -1,1 +1,51 @@
 exp/data/
+
+# History files
+Analysis/ChangeBlindness/.Rhistory
+Analysis/ChangeBlindness/.Rapp.history
+
+# Session Data files
+Analysis/ChangeBlindness/.RData
+Analysis/ChangeBlindness/.RDataTmp
+
+# User-specific files
+Analysis/ChangeBlindness/.Ruserdata
+
+# Example code in package build process
+Analysis/ChangeBlindness/*-Ex.R
+
+# Output files from R CMD build
+Analysis/ChangeBlindness/*.tar.gz
+
+# Output files from R CMD check
+Analysis/ChangeBlindness/*.Rcheck/
+
+# RStudio files
+Analysis/ChangeBlindness/.Rproj.user/
+
+# produced vignettes
+Analysis/ChangeBlindness/vignettes/*.html
+Analysis/ChangeBlindness/vignettes/*.pdf
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+Analysis/ChangeBlindness/.httr-oauth
+
+# knitr and R markdown default cache directories
+Analysis/ChangeBlindness/*_cache/
+Analysis/ChangeBlindness/cache/
+
+# Temporary files created by R markdown
+Analysis/ChangeBlindness/*.utf8.md
+Analysis/ChangeBlindness/*.knit.md
+
+# R Environment Variables
+Analysis/ChangeBlindness/.Renviron
+
+# pkgdown site
+Analysis/ChangeBlindness/docs/
+
+# translation temp files
+Analysis/ChangeBlindness/po/*~
+
+# RStudio Connect folder
+Analysis/ChangeBlindness/rsconnect/
