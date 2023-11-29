@@ -1,0 +1,76 @@
+---
+title: "ChangeBlindness"
+format: html
+editor: visual
+---
+
+## Packages
+
+```{r}
+library(tidyverse)
+library(easystats)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(quickpsy)
+library(buildmer)
+library(geepack)
+library(performance)
+library(see)
+library(cvms)
+library(caret)
+library(pROC)
+library(ggeffects)
+library(patchwork)
+library(cowplot)
+library(RColorBrewer)
+```
+
+## Raw Data
+
+```{r}
+raw.responses = read.csv("responses.csv")
+```
+
+## Clean up Data
+
+```{r}
+# Remove unnecessary columns and rows 
+# Rename headers to something usable
+# Filter out PID 0 (test IDs)
+# Normalize responses from the pairwise comparisons
+trial.data = raw.responses %>%
+  select(-1:-17) %>%
+  filter(!row_number() %in% c(1,2)) %>%
+  rename(c("PID" = "Q1",
+           "Age" = "Q2",
+           "Gender" = "Q3",
+           "CorrectiveLenses" = "Q4",
+           "EyeConditionBool" = "Q5",
+           "EyeConditionText" = "Q5_1_TEXT",
+           "AverageDrivingHours" = "Q6")) %>%
+  filter(PID != 0) %>%
+  mutate(
+    across(TLX_W_1:TLX_W_15, ~ as.integer(as.integer(.x)/2)),
+    across(TLX_Mental_1:TLX_Frustration_1, ~ as.integer(.x))
+  ) %>%
+  mutate(
+    effortWeight = (1-TLX_W_1)+(TLX_W_3)+(TLX_W_9)+(TLX_W_12)+(1-TLX_W_14),
+    frustrationWeight = (TLX_W_2)+(TLX_W_4)+(TLX_W_5)+(1-TLX_W_9)+(1-TLX_W_15),
+    mentalWeight = (TLX_W_8)+(TLX_W_10)+(1-TLX_W_12)+(1-TLX_W_13)+(TLX_W_15),
+    performanceWeight = (TLX_W_1)+(1-TLX_W_5)+(TLX_W_7)+(1-TLX_W_10)+(1-TLX_W_11),
+    physicalWeight = (1-TLX_W_4)+(1-TLX_W_6)+(1-TLX_W_7)+(TLX_W_13)+TLX_W_14,
+    temporalWeight = (1-TLX_W_2)+(1-TLX_W_3)+(TLX_W_6)+(1-TLX_W_8)+(TLX_W_11)
+  ) %>%
+  mutate(
+    finalUnweightedScore = (TLX_Effort_1 + TLX_Frustration_1 + 
+                              TLX_Mental_1 + TLX_Performance_1 + 
+                              TLX_Physical_1 + TLX_Temporal_1) / 6,
+    finalWeightedScore = ((TLX_Mental_1 * mentalWeight) + 
+                            (TLX_Frustration_1 * frustrationWeight) + 
+                            (TLX_Effort_1 * effortWeight) + 
+                            (TLX_Performance_1 * performanceWeight) + 
+                            (TLX_Physical_1 * physicalWeight) + 
+                            (TLX_Temporal_1 * temporalWeight)) / 15
+  )
+```
