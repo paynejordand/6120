@@ -4,7 +4,7 @@
 load.libraries <- function(libs,libpath) {
   for (package in libs) {
     if (!require(package, character.only = TRUE, quietly = TRUE)) {
-      install.packages(package, type="binary",
+      install.packages(package,
                        repos = "http://stat.ethz.ch/CRAN/",
                        lib = libpath,
                        dependencies = TRUE)

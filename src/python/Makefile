@@ -2,8 +2,8 @@ UNAME           = $(shell uname)
 
 ifeq ($(UNAME),Linux)
 #PYTHON = /opt/modules/python/3.7/bin/python3.7
-# PYTHON = /usr/bin/python3
-PYTHON = /opt/local/bin/python3.8
+PYTHON = /usr/bin/python3
+#PYTHON = /opt/local/bin/python3.8
 endif
 
 ifeq ($(UNAME),Darwin)
@@ -19,7 +19,7 @@ HEIGHT = 1080
 HERTZ = 60
 DIST = 21.65 # 55 cm
 #SCREEN = 19
-SCREEN = 17
+SCREEN = 21.65
 
 DFWIDTH = 5
 DFDEGREE = 3
@@ -40,7 +40,7 @@ XTILES = 8
 YTILES = 4
 
 INDIR = ../../exp/data/
-AOIDIR = ../../aois/1920x1080/
+AOIDIR = ../../aois/
 IMGDIR = ../../exp/stimuli/1920x1080/
 
 PLTDIR = ./plots/

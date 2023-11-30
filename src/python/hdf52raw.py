@@ -181,9 +181,12 @@ def hdf52raw(infile,outdir,width,height,dist):
 
   # init vars
 # stim = 'None'
-  stim = 'lab08'
-  st = 0.0
-  et = math.inf
+  # stim = 'set_1'
+  # st = 0.0
+  # et = math.inf
+  stim = []
+  st = []
+  et = []
 
   # this is if we manually add in code to issue messages in PsychoPy
   # process each pair of rows in message table: they contain start/end times
@@ -200,18 +203,24 @@ def hdf52raw(infile,outdir,width,height,dist):
 #   exp_id = msg['experiment_id']
 #   ses_id = msg['session_id']
   # better method: direct SQL-like query
-  for row in mestable.where('(category == "trial") & \
-                                 (text == "start")' \
-                           ):
-    st = row['time']
+  for row in mestable.where('(category == "trial")'):
+    if ("start" not in str(row["text"])):
+      continue
+    st.append(row['time'])
     exp_id = row['experiment_id']
     ses_id = row['session_id']
-  for row in mestable.where('(category == "trial") & \
-                                 (text == "stop")' \
-                           ):
-    et = row['time']
+  for row in mestable.where('(category == "trial")'):
+    if ("stop" not in str(row["text"])):
+      continue
+    et.append(row['time'])
     exp_id = row['experiment_id']
     ses_id = row['session_id']
+
+  for row in mestable.where('(category == "original")'):
+    img = row["text"].decode("utf-8")
+    img = img.split("/")[3]
+    img = img[:5]
+    stim.append(img)
 
   # pull out date string from session_meta_data table with matching
   # experiment_id and session_id
@@ -229,7 +238,7 @@ def hdf52raw(infile,outdir,width,height,dist):
   # for number of trials here
 # HACK
 # for i, row in enumerate(csvlist):
-  for i in range(1):
+  for i in range(len(stim) - 1):
 
 #   if 0 < i and i < len(csvlist)-1:
 #     stim = row['stim']
@@ -240,8 +249,8 @@ def hdf52raw(infile,outdir,width,height,dist):
 #     st = float(row['image.started'])
 #     et = math.inf
 
-    stim, ext = os.path.splitext(os.path.basename(stim))
-    print("stim, st, et: ",stim,st,et)
+    #stim, ext = os.path.splitext(os.path.basename(stim))
+    print("stim, st, et: ",stim[i],st[i],et[i])
 
     if outfile is not None:
       outfile.close()
@@ -250,14 +259,16 @@ def hdf52raw(infile,outdir,width,height,dist):
 #   if 0 < i:
     if True:
 
-      outfilename = "%s-%s.raw" % (subj,stim)
+      outfilename = "%s-%s.raw" % (subj,stim[i])
       outfile = open(outdir + outfilename,'w+')
       print('Outfile: %s' % (outfilename))
 
 #     for row in bestable.where('(experiment_id == exp_id) & \
 #                                (session_id == ses_id) & \
 #                                (st <= time)  &  (time <= et)' \
-      for row in bestable.where('(st <= time)  &  (time <= et)' \
+      startTime = st[i]
+      endTime = et[i]
+      for row in bestable.where('(startTime <= time)  &  (time <= endTime)' \
                                  ):
 #       print("%d %d %f %f %f %f %f %f %f" % (\
 #             row['experiment_id'], \
@@ -294,6 +305,7 @@ def hdf52raw(infile,outdir,width,height,dist):
 
         # convert height units to normalized coords
         # [-.5*(h/w), .5*(h/w)] -> [0,1]
+        #TODO: This needs to be changed so that it's based on pixels
         x_l = (x_l * height/width + 0.5)
         x_r = (x_r * height/width + 0.5)
 
