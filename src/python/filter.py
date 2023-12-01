@@ -361,6 +361,7 @@ def main(argv):
     if len(aoilist):
       aoilist.clear()
     aoifile = aoidir + shot + ".sla"
+    print(f"DEBUG LINE: {aoifile}")
     parseAOI(aoifile,aoilist)
 
     scanpath = Scanpath()
@@ -381,6 +382,7 @@ def main(argv):
 #   if not os.path.isfile(dest):
 #   scanpath.pICA("%s/%s-pICA%s" % (outdir,filename,".dat"),\
 #                   width,height,herz,sfdegree,sfcutoff)
+    
     scanpath.pIPAlevel("%s/%s-pICA%s" % (outdir,filename,".dat"),\
                     width,height,herz,sfdegree,sfcutoff)
     scanpath.pIPALH("%s/%s-pICALH%s" % (outdir,filename,".dat"),\
@@ -417,6 +419,7 @@ def main(argv):
 
 #   dest = "%s/%s-fxtn-aoi%s" % (outdir,filename,".dat")
 #   if not os.path.isfile(dest):
+    
     scanpath.dumpFixatedAOIs("%s/%s-fxtn-aoi%s" % (outdir,filename,".csv"),\
                             width,height,\
                             aoilist)

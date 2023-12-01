@@ -203,6 +203,7 @@ def hdf52raw(infile,outdir,width,height,dist):
 #   exp_id = msg['experiment_id']
 #   ses_id = msg['session_id']
   # better method: direct SQL-like query
+  units = "height"
   for row in mestable.where('(category == "trial")'):
     if ("start" not in str(row["text"])):
       continue
@@ -221,6 +222,9 @@ def hdf52raw(infile,outdir,width,height,dist):
     img = img.split("/")[3]
     img = img[:5]
     stim.append(img)
+  
+  for row in mestable.where('(category == "units")'):
+    units = row["text"].decode("utf-8")
 
   # pull out date string from session_meta_data table with matching
   # experiment_id and session_id
@@ -238,7 +242,7 @@ def hdf52raw(infile,outdir,width,height,dist):
   # for number of trials here
 # HACK
 # for i, row in enumerate(csvlist):
-  for i in range(len(stim) - 1):
+  for i in range(len(stim)):
 
 #   if 0 < i and i < len(csvlist)-1:
 #     stim = row['stim']
@@ -306,16 +310,22 @@ def hdf52raw(infile,outdir,width,height,dist):
         # convert height units to normalized coords
         # [-.5*(h/w), .5*(h/w)] -> [0,1]
         #TODO: This needs to be changed so that it's based on pixels
-        x_l = (x_l * height/width + 0.5)
-        x_r = (x_r * height/width + 0.5)
+        if units == "height":
+          x_l = (x_l * height/width + 0.5)
+          x_r = (x_r * height/width + 0.5)
 
-        # [-.5, .5] -> [0,1]
-        y_l = (y_l * 1.0 + 0.5)
-        y_r = (y_r * 1.0 + 0.5)
+          # [-.5, .5] -> [0,1]
+          y_l = (y_l * 1.0 + 0.5)
+          y_r = (y_r * 1.0 + 0.5)
 
-        # y-flip
-        y_l = 1.0 - y_l
-        y_r = 1.0 - y_r
+          # y-flip
+          y_l = 1.0 - y_l
+          y_r = 1.0 - y_r
+        elif units == "pix":
+          x_l = (x_l / width) + 0.5
+          x_r = (x_r / width) + 0.5
+          y_l = 1 - ((y_l / height) + 0.5)
+          y_r = 1 - ((y_r / height) + 0.5)
 
         x = (x_l + x_r)/2.0
         y = (y_l + y_r)/2.0
