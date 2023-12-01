@@ -203,8 +203,16 @@ def hdf52raw(infile,outdir,width,height,dist):
 #   exp_id = msg['experiment_id']
 #   ses_id = msg['session_id']
   # better method: direct SQL-like query
+  
+
   units = "height"
+  for row in mestable.where('(category == "units")'):
+    units = row["text"].decode("utf-8")
+  
+  # Changed this since I think would overwrite the start and end times for each trial
   for row in mestable.where('(category == "trial")'):
+    # Couldn't find a clean way to check a substring for start. 
+    # Could probably append start and end times here, rather than do two loops
     if ("start" not in str(row["text"])):
       continue
     st.append(row['time'])
@@ -217,14 +225,12 @@ def hdf52raw(infile,outdir,width,height,dist):
     exp_id = row['experiment_id']
     ses_id = row['session_id']
 
+  # UNIQUE TO THIS PROJECT
   for row in mestable.where('(category == "original")'):
     img = row["text"].decode("utf-8")
     img = img.split("/")[3]
     img = img[:5]
     stim.append(img)
-  
-  for row in mestable.where('(category == "units")'):
-    units = row["text"].decode("utf-8")
 
   # pull out date string from session_meta_data table with matching
   # experiment_id and session_id
@@ -243,16 +249,6 @@ def hdf52raw(infile,outdir,width,height,dist):
 # HACK
 # for i, row in enumerate(csvlist):
   for i in range(len(stim)):
-
-#   if 0 < i and i < len(csvlist)-1:
-#     stim = row['stim']
-#     st = float(row['image.started'])
-#     et = float(csvlist[i+1]['image.started'])
-#   elif i == len(csvlist)-1:
-#     stim = row['stim']
-#     st = float(row['image.started'])
-#     et = math.inf
-
     #stim, ext = os.path.splitext(os.path.basename(stim))
     print("stim, st, et: ",stim[i],st[i],et[i])
 
@@ -309,7 +305,6 @@ def hdf52raw(infile,outdir,width,height,dist):
 
         # convert height units to normalized coords
         # [-.5*(h/w), .5*(h/w)] -> [0,1]
-        #TODO: This needs to be changed so that it's based on pixels
         if units == "height":
           x_l = (x_l * height/width + 0.5)
           x_r = (x_r * height/width + 0.5)
@@ -336,7 +331,6 @@ def hdf52raw(infile,outdir,width,height,dist):
 #          x >= 0 and y >= 0):
         if(v < 6):
           strout = "%f %f %f %f" % (x,y,d,t)
-#         strout = "%f %f %f %f" % (x,1-y,d,t)
           outfile.write(strout + '\n')
 
     if outfile is not None:
@@ -346,77 +340,6 @@ def hdf52raw(infile,outdir,width,height,dist):
 
   return
 
-  """ this is my first attempt using h5py...ended up being too low-level
-      above attempt using pytables was much easier
-  """
-
-  try:
-    f = h5py.File(infile,'r')
-  except IOError:
-    print("Can't open file with h5py: " + infile)
-    return
-
-  # processing hdf5 file using h5py
-  print("keys:")
-  print(f.keys())
-
-  if 'class_table_mapping' in f.keys():
-    ctm = f['class_table_mapping']
-    print("ctm: ", ctm)
-#   tpath = f['class_table_mapping'].value # deprecated
-    tpath = f['class_table_mapping'][()]
-    print("tpath: ", tpath)
-
-# df = f['data_collection/session_meta_data']
-# print(df)
-
-  # attributes
-  print("attributes:")
-  for item in f.attrs.keys():
-    print(item + ":", f.attrs[item])
-
-  # meta data
-  print("data_collection/session_meta_data:")
-  md = f['data_collection/session_meta_data']
-  for i in range(len(md)):
-#   print("%d\t %g" % (i, md[i]))
-    print(md[i])
-
-  # eye tracker
-  print("data_collection/events/eyetracker:")
-  print(f['data_collection/events/eyetracker'])
-  for g in f['data_collection/events/eyetracker']:
-    print(g)
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['experiment_id'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['session_id'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['time'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['status'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['left_raw_x'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['left_raw_y'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['left_pupil_measure1'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['right_raw_x'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['right_raw_y'])
-  print(f['data_collection/events/eyetracker/BinocularEyeSampleEvent']['right_pupil_measure1'])
-
-  # gaze data -- but how to query it?
-  gd = f['data_collection/events/eyetracker/BinocularEyeSampleEvent']
-  print(gd)
-  print("len(gd): ",len(gd))
-  print("gd.shape: ",gd.shape)
-
-# for i in range(len(gd)):
-#   print("%d\t %g" % (i, gd[i]))
-#   print(gd['time'][i])
-#   print(gd['status'][i])
-#   print(gd['left_raw_x'][i])
-#   print(gd['left_raw_y'][i])
-#   print(gd['left_pupil_measure1'][i])
-#   print(gd['right_raw_x'][i])
-#   print(gd['right_raw_y'][i])
-#   print(gd['right_pupil_measure1'][i])
-#   print('')
-
 def main(argv):
 # if not len(argv):
 #   usage()
@@ -425,7 +348,8 @@ def main(argv):
     opts, args = getopt.getopt(argv, '', \
                  ['indir=','outdir=','file=',\
                   'width=','height=','dist=',\
-                  'hertz=','sfdegree=','sfcutoff='])
+                  'hertz=','sfdegree=','sfcutoff=',
+                  'outstruct='])
   except getopt.GetoptError as err:
     usage()
     exit()
@@ -434,6 +358,7 @@ def main(argv):
   files = []
   indir = './'
   outdir = './'
+  outstruct = 'subj-stim'
 
   for opt,arg in opts:
     opt = opt.lower()
@@ -451,9 +376,12 @@ def main(argv):
     elif opt == '--dist':
       # convert distance to cm and then to mm
       dist = float(arg) * 2.54 * 10.0
+    elif opt == '--outstruct':
+      outstruct = arg
     else:
       sys.argv[1:]
 
+  outstruct = outstruct.split("-")
   # get .hdf5 input files to process
   if os.path.isdir(indir):
 #   files = glob.glob('%s/*.hdf5' % (indir))

@@ -156,7 +156,8 @@ def main(argv):
                   'sfdegree=', 'sfcutoff=',\
                   'dfdegree=', 'dfwidth=',\
                   'baselineT=','endT=',\
-                  'vt=', 'smooth=', 'proximity='])
+                  'vt=', 'smooth=', 'proximity=',\
+                  'lastfix='])
   except getopt.GetoptError as err:
     usage()
     exit()
@@ -258,7 +259,7 @@ def main(argv):
 
   dfwidth = 5
   dfdegree = 3
-
+  lastfix = 0
   for opt,arg in opts:
     opt = opt.lower()
     if(opt != '--file' and opt != '--image'):
@@ -309,6 +310,8 @@ def main(argv):
     elif opt == '--endt':
       endT = float(arg)
       print("endT = ", endT)
+    elif opt == '--lastfix':
+      lastfix = arg
     else:
       sys.argv[1:]
 
@@ -611,6 +614,35 @@ def main(argv):
     plotter.renderAmfocFixations("%s/%s-%s" % (pltdir,filename,"affx"),\
                             width,height,\
                             scanpath.fixations,\
+                            scanpath.K,\
+                            "Ambient/Focal Fixations",\
+                            image,\
+                            xtiles,ytiles)
+    
+    # TODO: pass args into render functions instead
+    if lastfix != 0:
+      lastfix = int(lastfix)
+      plotter.renderAOIFixations("%s/%s-%s" % (pltdir,filename,f"aoi-fxtn-last-{lastfix}"),\
+                            width,height,\
+                            scanpath.fixations[-lastfix:],\
+                            aoilist,\
+                            imagebase,\
+                            "AOI Fixations",\
+                            image,\
+                            xtiles,ytiles)
+
+    plotter.renderFixatedAOIs("%s/%s-%s" % (pltdir,filename,f"fxtn-aoi-last-{lastfix}"),\
+                            width,height,\
+                            scanpath.fixations[-lastfix:],\
+                            aoilist,\
+                            imagebase,\
+                            "AOI Fixations",\
+                            image,\
+                            xtiles,ytiles)
+
+    plotter.renderAmfocFixations("%s/%s-%s" % (pltdir,filename,f"affx-last-{lastfix}"),\
+                            width,height,\
+                            scanpath.fixations[-lastfix:],\
                             scanpath.K,\
                             "Ambient/Focal Fixations",\
                             image,\

@@ -35,13 +35,12 @@ raw.responses = read.csv("responses.csv")
 ## Clean up Data
 
 ```{r}
-# Remove unnecessary columns and rows 
-# Rename headers to something usable
-# Filter out PID 0 (test IDs)
-# Normalize responses from the pairwise comparisons
+
 trial.data = raw.responses %>%
+  # Remove unnecessary columns and rows 
   select(-1:-17) %>%
   filter(!row_number() %in% c(1,2)) %>%
+  # Rename headers to something usable
   rename(c("PID" = "Q1",
            "Age" = "Q2",
            "Gender" = "Q3",
@@ -49,12 +48,16 @@ trial.data = raw.responses %>%
            "EyeConditionBool" = "Q5",
            "EyeConditionText" = "Q5_1_TEXT",
            "AverageDrivingHours" = "Q6")) %>%
+  # Filter out PID 0 (test IDs)
   filter(PID != 0) %>%
   mutate(
+    # Normalize responses from the pairwise comparisons
     across(TLX_W_1:TLX_W_15, ~ as.integer(as.integer(.x)/2)),
-    across(TLX_Mental_1:TLX_Frustration_1, ~ as.integer(.x))
+    across(TLX_Mental_1:TLX_Frustration_1, ~ as.integer(.x)),
+    across(TLX_Mental_1:TLX_Frustration_1, ~ ifelse(is.na(.x), 0, .x))
   ) %>%
   mutate(
+    # Calculate weights
     effortWeight = (1-TLX_W_1)+(TLX_W_3)+(TLX_W_9)+(TLX_W_12)+(1-TLX_W_14),
     frustrationWeight = (TLX_W_2)+(TLX_W_4)+(TLX_W_5)+(1-TLX_W_9)+(1-TLX_W_15),
     mentalWeight = (TLX_W_8)+(TLX_W_10)+(1-TLX_W_12)+(1-TLX_W_13)+(TLX_W_15),
@@ -63,6 +66,7 @@ trial.data = raw.responses %>%
     temporalWeight = (1-TLX_W_2)+(1-TLX_W_3)+(TLX_W_6)+(1-TLX_W_8)+(TLX_W_11)
   ) %>%
   mutate(
+    # Calculate final scores
     finalUnweightedScore = (TLX_Effort_1 + TLX_Frustration_1 + 
                               TLX_Mental_1 + TLX_Performance_1 + 
                               TLX_Physical_1 + TLX_Temporal_1) / 6,
@@ -73,4 +77,10 @@ trial.data = raw.responses %>%
                             (TLX_Physical_1 * physicalWeight) + 
                             (TLX_Temporal_1 * temporalWeight)) / 15
   )
+```
+
+## Descriptive Statistics
+
+```{r}
+
 ```

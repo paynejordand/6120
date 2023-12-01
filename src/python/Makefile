@@ -19,7 +19,7 @@ HEIGHT = 1080
 HERTZ = 60
 DIST = 21.65 # 55 cm
 #SCREEN = 19
-SCREEN = 21.65
+SCREEN = 19.685
 
 DFWIDTH = 5
 DFDEGREE = 3
@@ -39,6 +39,12 @@ VT = 10.0
 XTILES = 8
 YTILES = 4
 
+# Last X number of fixations
+LASTFIX = 30
+# structure of the output file. Currently subj-stim -> subj-stim-task
+# lab10 structure is subj-exp_id-session_id-marker(condition)-target(condition)
+OUTSTRUCT = subj-stim-task
+
 INDIR = ../../exp/data/
 AOIDIR = ../../aois/
 IMGDIR = ../../exp/stimuli/1920x1080/
@@ -57,13 +63,13 @@ dirs:
 	mkdir -p graphs
 
 raw:
-	$(PYTHON) ./hdf52raw.py --indir=$(INDIR) --outdir=$(RAWDIR) --width=$(WIDTH) --height=$(HEIGHT) --dist=$(DIST)
+	$(PYTHON) ./hdf52raw.py --indir=$(INDIR) --outdir=$(RAWDIR) --width=$(WIDTH) --height=$(HEIGHT) --dist=$(DIST) --outstruct=$(OUTSTRUCT)
 
 process:
 	$(PYTHON) ./filter.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR)
 
 graph:
-	$(PYTHON) ./graph.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR) --pltdir=$(PLTDIR)
+	$(PYTHON) ./graph.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR) --pltdir=$(PLTDIR) --lastfix=$(LASTFIX)
 
 collate:
 	$(PYTHON) ./collate-amfo.py
@@ -80,7 +86,7 @@ collate:
 stats:
 	R --vanilla < wm.R > wm.out
 	R --vanilla --args 5 < tm.R > tm.out
-#	R --vanilla  < pICALH.R > pICALH.out
+	R --vanilla < fxtn.R > fxtn.out
 
 clean:
 	rm -f *.pyc

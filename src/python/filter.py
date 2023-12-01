@@ -361,7 +361,6 @@ def main(argv):
     if len(aoilist):
       aoilist.clear()
     aoifile = aoidir + shot + ".sla"
-    print(f"DEBUG LINE: {aoifile}")
     parseAOI(aoifile,aoilist)
 
     scanpath = Scanpath()

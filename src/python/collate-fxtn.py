@@ -22,9 +22,12 @@ def catCSVFile(infile,df,ct):
   # extract stimulus name and subj id
   # filename now has the form 'date-rest_of_it', extract just the second part
   subj = filename.split('-')[0]
-  shot = filename.split('-')[1]
-  print("subj, shot: ", \
-         subj, shot)
+  exp_id = filename.split('-')[1]
+  ses_id = filename.split('-')[2]
+  marker = filename.split('-')[3]
+  object = filename.split('-')[4]
+  print("subj, exp_id, ses_id, marker, object: ", \
+         subj, exp_id, ses_id, marker, object)
 
   # read lines, throwing away first one (header)
 # linelist = f.readlines()
@@ -52,14 +55,17 @@ def catCSVFile(infile,df,ct):
     sacc_amplitude  = entry[SACC_AMPLITUDE]
     sacc_dur  = entry[SACC_DUR]
 
-    str = "%s,%s,%s,%s,%s,%s,%s,%s" % ( \
-                                    subj,\
-                                    shot,\
-                                    timestamp,\
-                                    x,y,\
-                                    duration,\
-                                    sacc_amplitude,\
-                                    sacc_dur)
+    str = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % ( \
+                         subj, \
+                         exp_id, \
+                         ses_id, \
+                         marker, \
+                         object, \
+                         timestamp,\
+                         x,y,\
+                         duration,\
+                         sacc_amplitude,\
+                         sacc_dur)
     print(str, file=df)
     ct += 1
 
@@ -69,7 +75,7 @@ def catCSVFile(infile,df,ct):
 
 # clear out output file
 df = open("fxtn.csv",'w')
-print("subj,shot,timestamp,x,y,duration,sacc_amplitude,sacc_dur", file=df)
+print("subj,exp_id,ses_id,marker,object,timestamp,x,y,duration,sacc_amplitude,sacc_dur", file=df)
 
 dir = './data/'
 
