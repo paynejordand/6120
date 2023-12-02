@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
-import sys, os, math
+import sys,os,getopt
 
-def catCSVFile(infile,df,ct):
+def usage():
+  print("Usage: python collate-fxtn.py " \
+        " --outstruct=?" \
+        "   The structure of the output file")
+
+def catCSVFile(infile,df,ct,outstruct):
   try:
     f = open(infile,'r')
   except IOError:
@@ -21,13 +26,29 @@ def catCSVFile(infile,df,ct):
 
   # extract stimulus name and subj id
   # filename now has the form 'date-rest_of_it', extract just the second part
-  subj = filename.split('-')[0]
-  exp_id = filename.split('-')[1]
-  ses_id = filename.split('-')[2]
-  marker = filename.split('-')[3]
-  object = filename.split('-')[4]
-  print("subj, exp_id, ses_id, marker, object: ", \
-         subj, exp_id, ses_id, marker, object)
+  test = filename.split("-")
+  print(f"DEBUG LINE: {test} == {outstruct}")
+
+  filename = filename.split("-")
+  outfile = {}
+  for i in range(len(outstruct)):
+    outfile[outstruct[i]] = filename[i]
+  
+  dStrOne = ""
+  dStrTwo = ""
+  for k,v in outfile.items():
+    dStrOne += f"{k},"
+    dStrTwo += f"{v},"
+  dStrOne = dStrOne[:-1]
+  dStrTwo = dStrTwo[:-1]
+  print(f"{dStrOne}: {dStrTwo}")
+  # subj = filename.split('-')[0]
+  # exp_id = filename.split('-')[1]
+  # ses_id = filename.split('-')[2]
+  # marker = filename.split('-')[3]
+  # object = filename.split('-')[4]
+  # print("subj, exp_id, ses_id, marker, object: ", \
+  #        subj, exp_id, ses_id, marker, object)
 
   # read lines, throwing away first one (header)
 # linelist = f.readlines()
@@ -55,17 +76,22 @@ def catCSVFile(infile,df,ct):
     sacc_amplitude  = entry[SACC_AMPLITUDE]
     sacc_dur  = entry[SACC_DUR]
 
-    str = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % ( \
-                         subj, \
-                         exp_id, \
-                         ses_id, \
-                         marker, \
-                         object, \
-                         timestamp,\
-                         x,y,\
-                         duration,\
-                         sacc_amplitude,\
-                         sacc_dur)
+    # str = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % ( \
+    #                      subj, \
+    #                      exp_id, \
+    #                      ses_id, \
+    #                      marker, \
+    #                      object, \
+    #                      timestamp,\
+    #                      x,y,\
+    #                      duration,\
+    #                      sacc_amplitude,\
+    #                      sacc_dur)
+    str = ""
+    for _,v in outfile.items():
+      str += f"{v},"
+    str = f"{str[:-1]},{timestamp},{x},{y},{duration},{sacc_amplitude},{sacc_dur}"
+    
     print(str, file=df)
     ct += 1
 
@@ -73,23 +99,59 @@ def catCSVFile(infile,df,ct):
 
 ###############################################################################
 
-# clear out output file
-df = open("fxtn.csv",'w')
-print("subj,exp_id,ses_id,marker,object,timestamp,x,y,duration,sacc_amplitude,sacc_dur", file=df)
+def main(argv):
+# if not len(argv):
+#   usage()
+  
+  try:
+    opts, args = getopt.getopt(argv, '', \
+                 ['outstruct='])
+  except getopt.GetoptError as err:
+    usage()
+    exit()
 
-dir = './data/'
+  file = None
+  files = []
+  indir = './'
+  outdir = './'
+  outstruct = 'subj-stim'
 
-# find all files in dir with .csv extension
-lst = [a for a in os.listdir(dir) if a.endswith('-fxtn.dat')]
+  for opt,arg in opts:
+    opt = opt.lower()
+    if(opt != '--file' and opt != '--indir'):
+      arg = arg.lower()
 
-lineno = 1
+    if opt == '--outstruct':
+      outstruct = arg
+    else:
+      sys.argv[1:]
+    
+  outstruct = outstruct.split("-")
 
-for item in lst:
+  # clear out output file
+  df = open("fxtn.csv",'w')
+  header = ""
+  for item in outstruct:
+    header += f"{item},"
+  header += "timestamp,x,y,duration,sacc_amplitude,sacc_dur"
+  print(header, file=df)
 
-  file = dir + item
-  print('Processing ', file)
+  dir = './data/'
 
-  # cat csv files into one
-  lineno = catCSVFile(file,df,lineno)
+  # find all files in dir with .csv extension
+  lst = [a for a in os.listdir(dir) if a.endswith('-fxtn.dat')]
 
-df.close()
+  lineno = 1
+
+  for item in lst:
+
+    file = dir + item
+    print('Processing ', file)
+
+    # cat csv files into one
+    lineno = catCSVFile(file,df,lineno,outstruct)
+
+  df.close()
+
+if __name__ == "__main__":
+  main(sys.argv[1:])

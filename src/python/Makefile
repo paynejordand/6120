@@ -41,8 +41,8 @@ YTILES = 4
 
 # Last X number of fixations
 LASTFIX = 30
-# structure of the output file. Currently subj-stim -> subj-stim-task
-# lab10 structure is subj-exp_id-session_id-marker(condition)-target(condition)
+# structure of the output file. Default is subj-stim. 
+# Seems like the rest of the codebase wants to have conditions in the file names
 OUTSTRUCT = subj-stim-task
 
 INDIR = ../../exp/data/
@@ -66,7 +66,7 @@ raw:
 	$(PYTHON) ./hdf52raw.py --indir=$(INDIR) --outdir=$(RAWDIR) --width=$(WIDTH) --height=$(HEIGHT) --dist=$(DIST) --outstruct=$(OUTSTRUCT)
 
 process:
-	$(PYTHON) ./filter.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR)
+	$(PYTHON) ./filter.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR) --outstruct=$(OUTSTRUCT)
 
 graph:
 	$(PYTHON) ./graph.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR) --pltdir=$(PLTDIR) --lastfix=$(LASTFIX)
@@ -80,7 +80,7 @@ collate:
 	$(PYTHON) ./collate-pICALH.py
 	$(PYTHON) ./collate-bpcpd.py
 	$(PYTHON) ./collate-cbpcpd.py
-	$(PYTHON) ./collate-fxtn.py
+	$(PYTHON) ./collate-fxtn.py --outstruct=$(OUTSTRUCT)
 	$(PYTHON) ./collate-fxtn-aois.py
 
 stats:

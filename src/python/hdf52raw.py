@@ -91,7 +91,7 @@ def gettimings(infile):
   csvfile.close()
 
 # convert csv file to raw
-def hdf52raw(infile,outdir,width,height,dist):
+def hdf52raw(infile,outdir,width,height,dist,outstruct):
 
   try:
     h5file = tables.open_file(infile,mode='r')
@@ -180,38 +180,20 @@ def hdf52raw(infile,outdir,width,height,dist):
 #   print("mestable: ", mestable)
 
   # init vars
-# stim = 'None'
-  # stim = 'set_1'
-  # st = 0.0
-  # et = math.inf
   stim = []
   st = []
   et = []
+  conditions = {}
+  units = "height"
 
   # this is if we manually add in code to issue messages in PsychoPy
   # process each pair of rows in message table: they contain start/end times
-# for msg in mestable.iterrows():
-#   # get record info: first of pair of lines should be 'start'
-#   if msg['category'].decode('utf-8') == 'trial' and \
-#      msg['text'].decode('utf-8') == 'start':
-#     st = msg['time']
-#     continue
-#   # get record info: second of pair of lines should be 'end'
-#   if msg['category'].decode('utf-8') == 'trial' and \
-#      msg['text'].decode('utf-8') == 'stop':
-#     et = msg['time']
-#   exp_id = msg['experiment_id']
-#   ses_id = msg['session_id']
-  # better method: direct SQL-like query
-  
-
-  units = "height"
   for row in mestable.where('(category == "units")'):
     units = row["text"].decode("utf-8")
   
   # Changed this since I think would overwrite the start and end times for each trial
   for row in mestable.where('(category == "trial")'):
-    # Couldn't find a clean way to check a substring for start. 
+    # Couldn't find a way to check a substring for start in the text column. 
     # Could probably append start and end times here, rather than do two loops
     if ("start" not in str(row["text"])):
       continue
@@ -231,6 +213,13 @@ def hdf52raw(infile,outdir,width,height,dist):
     img = img.split("/")[3]
     img = img[:5]
     stim.append(img)
+  
+  
+  # Assumes that all instances of cond are equal in the message table
+  for cond in outstruct[2:]:
+    for row in mestable.where('category == cond'):
+      conditions[cond] = row["text"].decode("utf-8")
+      
 
   # pull out date string from session_meta_data table with matching
   # experiment_id and session_id
@@ -246,92 +235,72 @@ def hdf52raw(infile,outdir,width,height,dist):
   print("date: ", date)
 
   # for number of trials here
-# HACK
-# for i, row in enumerate(csvlist):
   for i in range(len(stim)):
-    #stim, ext = os.path.splitext(os.path.basename(stim))
     print("stim, st, et: ",stim[i],st[i],et[i])
 
     if outfile is not None:
       outfile.close()
 
-# HACK
-#   if 0 < i:
-    if True:
+    # If there are conditions in our data we want to add those to the file name
+    outfilename = f"{subj}-{stim[i]}"
+    if conditions != {}:
+      for _,cond in conditions.items():
+        outfilename += f"-{cond}"
+    outfilename += ".raw"
+    outfile = open(outdir + outfilename,'w+')
+    print('Outfile: %s' % (outfilename))
 
-      outfilename = "%s-%s.raw" % (subj,stim[i])
-      outfile = open(outdir + outfilename,'w+')
-      print('Outfile: %s' % (outfilename))
+    startTime = st[i]
+    endTime = et[i]
+    for row in bestable.where('(startTime <= time)  &  (time <= endTime)'):
 
-#     for row in bestable.where('(experiment_id == exp_id) & \
-#                                (session_id == ses_id) & \
-#                                (st <= time)  &  (time <= et)' \
-      startTime = st[i]
-      endTime = et[i]
-      for row in bestable.where('(startTime <= time)  &  (time <= endTime)' \
-                                 ):
-#       print("%d %d %f %f %f %f %f %f %f" % (\
-#             row['experiment_id'], \
-#             row['session_id'], \
-#             row['time'], \
-#             row['left_gaze_x'], \
-#             row['left_gaze_y'], \
-#             row['left_pupil_measure1'], \
-#             row['right_gaze_x'], \
-#             row['right_gaze_y'], \
-#             row['right_pupil_measure1']))
+      # see:
+      # https://www.psychopy.org/api/iohub/device/eyetracker_interface/GazePoint_Implementation_Notes.html#psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
+      t = row['time']
+      # gaze position in psychopy window in the window coord unit being used
+      # (e.g., norm, height, pix, etc.)
+      x_l = row['left_gaze_x']
+      y_l = row['left_gaze_y']
+      x_r = row['right_gaze_x']
+      y_r = row['right_gaze_y']
+      d_l = row['left_pupil_measure2']
+      d_r = row['right_pupil_measure2']
+      v = row['status']
 
-# see:
-# https://www.psychopy.org/api/iohub/device/eyetracker_interface/GazePoint_Implementation_Notes.html#psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
-        t = row['time']
-# these are the eye coords of the pupils in the camera images, don't use
-#       x_l = row['left_raw_x']
-#       y_l = row['left_raw_y']
-#       x_r = row['right_raw_x']
-#       y_r = row['right_raw_y']
-# gaze position in psychopy window in the window coord unit being used
-# (e.g., norm, height, pix, etc.)
-        x_l = row['left_gaze_x']
-        y_l = row['left_gaze_y']
-        x_r = row['right_gaze_x']
-        y_r = row['right_gaze_y']
-        d_l = row['left_pupil_measure2']
-        d_r = row['right_pupil_measure2']
-        v = row['status']
+      # height unit mapping [0,w,0,h] -> [-.5*(w/h),.5*(w/h),-.5,.5]
+      # x' = ( (x - 0)/w -.5 )*(w/h)
+      # y' = ( (y - 0)/h -.5 )*(h/h)
 
-        # height unit mapping [0,w,0,h] -> [-.5*(w/h),.5*(w/h),-.5,.5]
-        # x' = ( (x - 0)/w -.5 )*(w/h)
-        # y' = ( (y - 0)/h -.5 )*(h/h)
+      # convert height units to normalized coords
+      # [-.5*(h/w), .5*(h/w)] -> [0,1]
+      if units == "height":
+        x_l = (x_l * height/width + 0.5)
+        x_r = (x_r * height/width + 0.5)
 
-        # convert height units to normalized coords
-        # [-.5*(h/w), .5*(h/w)] -> [0,1]
-        if units == "height":
-          x_l = (x_l * height/width + 0.5)
-          x_r = (x_r * height/width + 0.5)
+        # [-.5, .5] -> [0,1]
+        y_l = (y_l * 1.0 + 0.5)
+        y_r = (y_r * 1.0 + 0.5)
 
-          # [-.5, .5] -> [0,1]
-          y_l = (y_l * 1.0 + 0.5)
-          y_r = (y_r * 1.0 + 0.5)
+        # y-flip
+        y_l = 1.0 - y_l
+        y_r = 1.0 - y_r
+      # pix unit mapping
+      # x range [-width/2, width/2]
+      # y range [-height/2, height/2] 
+      elif units == "pix":
+        x_l = (x_l / width) + 0.5
+        x_r = (x_r / width) + 0.5
+        # Normalize and flip in one line
+        y_l = 1 - ((y_l / height) + 0.5) 
+        y_r = 1 - ((y_r / height) + 0.5)
 
-          # y-flip
-          y_l = 1.0 - y_l
-          y_r = 1.0 - y_r
-        elif units == "pix":
-          x_l = (x_l / width) + 0.5
-          x_r = (x_r / width) + 0.5
-          y_l = 1 - ((y_l / height) + 0.5)
-          y_r = 1 - ((y_r / height) + 0.5)
+      x = (x_l + x_r)/2.0
+      y = (y_l + y_r)/2.0
+      d = (d_l + d_r)/2.0
 
-        x = (x_l + x_r)/2.0
-        y = (y_l + y_r)/2.0
-        d = (d_l + d_r)/2.0
-
-#       if(v < 6 and \
-#          x < 1 and y < 1 and \
-#          x >= 0 and y >= 0):
-        if(v < 6):
-          strout = "%f %f %f %f" % (x,y,d,t)
-          outfile.write(strout + '\n')
+      if(v < 6):
+        strout = "%f %f %f %f" % (x,y,d,t)
+        outfile.write(strout + '\n')
 
     if outfile is not None:
       outfile.close()
@@ -343,7 +312,6 @@ def hdf52raw(infile,outdir,width,height,dist):
 def main(argv):
 # if not len(argv):
 #   usage()
-
   try:
     opts, args = getopt.getopt(argv, '', \
                  ['indir=','outdir=','file=',\
@@ -415,7 +383,7 @@ def main(argv):
 
   for file in files:
 #   gettimings(file)
-    hdf52raw(file,outdir,width,height,dist)
+    hdf52raw(file,outdir,width,height,dist,outstruct)
     # update progress bar
 #   pbar.update(1)
 

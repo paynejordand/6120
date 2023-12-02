@@ -147,7 +147,6 @@ def parseAOI(aoifile,aoilist):
 def main(argv):
 # if not len(argv):
 #   usage()
-
   try:
     opts, args = getopt.getopt(argv, '', \
                  ['width=','height=',\
@@ -159,7 +158,8 @@ def main(argv):
                   'hertz=','sfdegree=','sfcutoff=',\
                   'dfdegree=','dfwidth=',\
                   'baselineT=','endT=',\
-                  'vt=','smooth=','proximity='])
+                  'vt=','smooth=','proximity=',
+                  'outstruct='])
   except getopt.GetoptError as err:
     usage()
     exit()
@@ -216,6 +216,7 @@ def main(argv):
   outdir = "./data"
   aoidir = "../../../../aois/"
   aoifile = "aoidefinition.sla"
+  outstruct = "subj-stim"
 
   # checkedbeforehand so that custom parameters could still be used...
   # check if smooth is an option. We will set default parameters based on 
@@ -238,19 +239,6 @@ def main(argv):
     print(e)
     sys.exit()
     pass
-
-# try:
-#     arg = opts[[t[0] for t in opts].index('--proximity')][1]
-#     if arg.lower() == 'true':
-#         proximity = True
-#     elif arg.lower() == 'false':
-#         proximity = False
-#     else:
-#         print("Warning, invalid proximity value. Assuming default.")
-# except Exception as e:
-#   print(e)
-#   sys.exit()
-#   pass
 
   dfwidth = 3
   dfdegree = 3
@@ -300,9 +288,12 @@ def main(argv):
       baselineT = float(arg)
     elif opt == '--endt':
       endT = float(arg)
+    elif opt == '--outstruct':
+      outstuct = arg
     else:
       sys.argv[1:]
 
+  outstruct = outstruct.split("-")
   basescanpath = None
 
   # get .raw input files to process

@@ -50,3 +50,8 @@ Analysis/ChangeBlindness/po/*~
 # RStudio Connect folder
 Analysis/ChangeBlindness/rsconnect/
 exp/david_data.zip
+
+# Files generated from python scripts
+src/python/data/
+src/python/__pycache__/
+src/python/*.csv
