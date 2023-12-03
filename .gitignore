@@ -53,5 +53,9 @@ exp/david_data.zip
 
 # Files generated from python scripts
 src/python/data/
+src/python/plots/
+src/python/graphs/
+src/python/figs/
 src/python/__pycache__/
 src/python/*.csv
+src/python/*.out
