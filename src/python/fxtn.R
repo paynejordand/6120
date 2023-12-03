@@ -9,14 +9,14 @@ if(platform == "Windows") {
      dir.create(lpath,recursive=TRUE)
    }
    libpath <- c(lpath)
-else
+} else{
   libpath <- .libPaths()
 }
 
 source('custom.R')
 
 # load plyr before dplyr
-load.libraries(c('rio','psych','ggplot2','afex','plyr','dplyr','lsmeans','knitr'))
+load.libraries(c('rio','psych','ggplot2','afex','plyr','dplyr','lsmeans','knitr'),libpath)
 
 # for pdf plots
 pdf.options(family="NimbusSan", useDingbats=FALSE)
@@ -30,8 +30,7 @@ df <- read.csv('fxtn.csv')
 
 #subj,marker,ojbect,timestamp,x,y,duration,sacc_amplitude,sacc_dur
 df$subj <- factor(df$subj)
-df$marker <- factor(df$marker)
-df$object <- factor(df$object)
+df$task <- factor(df$task)
 
 describe(df$duration)
 describe(df$sacc_amplitude)
@@ -45,7 +44,7 @@ df <- df[which(df$sacc_amplitude > 0.00001), ]
 (fit <- aov_ez(data = df,
                id = "subj",
                dv = "sacc_amplitude",
-               within = c('marker','object'),
+               between = c('task'),
                type = 3,
                factorize = FALSE))
 summary(fit)
@@ -53,11 +52,11 @@ summary(fit)
 # nicer table
 kable(nice(fit,es="ges"))
 
-(t <- lsmeans(fit, c('marker'), contr = 'pairwise'))
+(t <- lsmeans(fit, c('task'), contr = 'pairwise'))
 tab <- summary(t$lsmeans)
 
 samp.plot <- ggplot(tab,
-                    aes(x = marker, y = lsmean)) +
+                    aes(x = task, y = lsmean)) +
                     geom_bar(position=position_dodge(), stat="identity",
                           colour="#303030",fill="#d94801",alpha=.7) +
 #                         colour="#303030",fill="#045a8d",alpha=.7) +
@@ -68,7 +67,7 @@ samp.plot <- ggplot(tab,
                                   position=position_dodge(.9)) +
 		    theme_bw(base_size=18) + 
                     ylab("Mean saccade amplitude (deg.)") +
-                    xlab('Marker') +
+                    xlab('Task') +
                     theme(legend.position = "none")
 
 plotName = "./figs/samp.pdf"
@@ -89,7 +88,7 @@ embedFonts(plotName, "pdfwrite", outfile = plotName,
 (fit <- aov_ez(data = df,
                id = "subj",
                dv = "duration",
-               within = c('marker','object'),
+               between = c('task'),
                type = 3,
                factorize = FALSE))
 summary(fit)
@@ -99,11 +98,11 @@ kable(nice(fit,es="ges"))
 
 describe(df$duration)
 
-(t <- lsmeans(fit, c('marker'), contr = 'pairwise'))
+(t <- lsmeans(fit, c('task'), contr = 'pairwise'))
 tab <- summary(t$lsmeans)
 
 fdur.plot <- ggplot(tab,
-                    aes(x = marker, y = lsmean)) +
+                    aes(x = task, y = lsmean)) +
                     geom_bar(position=position_dodge(), stat="identity",
                           colour="#303030",fill="#d94801",alpha=.7) +
 #                         colour="#303030",fill="#045a8d",alpha=.7) +
@@ -114,7 +113,7 @@ fdur.plot <- ggplot(tab,
                                   position=position_dodge(.9)) +
 		    theme_bw(base_size=18) + 
                     ylab("Mean fixation duration (sec.)") +
-                    xlab('Marker') +
+                    xlab('Task') +
                     theme(legend.position = "none")
 
 plotName = "./figs/dur.pdf"

@@ -10,12 +10,14 @@ if(platform == "Windows") {
    }
    libpath <- c(lpath)
   .libPaths(libpath)
+} else{
+  libpath <- .libPaths()
 }
 
 source('custom.R')
 
 #load.libraries(c('emmeans','sciplot','ez','psych','reshape','plyr','ggplot2','afex','dplyr','pastecs'),libpath)
-load.libraries(c('emmeans','sciplot','psych','reshape','plyr','ggplot2','afex','dplyr','pastecs'))
+load.libraries(c('emmeans','sciplot','psych','reshape','plyr','ggplot2','afex','dplyr','pastecs'),libpath)
 
 source("tmcustom.R") 
 source("lwheatmap.R") 
@@ -36,14 +38,14 @@ M <- zeroWM(smin,smax)
 ddf <- df
 #ddf
 M_20 <- TransWMatrix(M,data=ddf,
-                    StimulusVar="shot",
+                    StimulusVar="stim",
                     SubjectsVar="subj",
                     SpanVar="aoi_span")
 M_20 <- M
 M_20
 
 en_20 <- TransEntropy(M,data=ddf,
-                    StimulusVar="shot",
+                    StimulusVar="stim",
                     SubjectsVar="subj",
                     SpanVar="aoi_span")
 en_20 <- TMentrop

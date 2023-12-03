@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 
-import sys, os, math
+import sys, os, getopt
 
-def catCSVFile(infile,df,ct):
+def usage():
+  print(f"Usage: python {os.path.basename(__file__)} " \
+        " --outstruct=?\n" \
+        "   outstructt: The structure of the output file")
+
+def catCSVFile(infile,df,ct,outstruct):
+  try:
+    f = open(infile,'r')
+  except IOError:
+    print("Can't open file: " + infile)
+    return
+  
   try:
     f = open(infile,'r')
   except IOError:
@@ -20,10 +31,19 @@ def catCSVFile(infile,df,ct):
 
   # extract stimulus name and subj id
   # filename now has the form 'date-rest_of_it', extract just the second part
-  subj = filename.split('-')[0]
-  shot = filename.split('-')[1]
-  print("subj, shot: ", \
-         subj, shot)
+  filename = filename.split("-")
+  outfile = {}
+  for i in range(len(outstruct)):
+    outfile[outstruct[i]] = filename[i]
+  
+  dStrOne = ""
+  dStrTwo = ""
+  for k,v in outfile.items():
+    dStrOne += f"{k},"
+    dStrTwo += f"{v},"
+  dStrOne = dStrOne[:-1]
+  dStrTwo = dStrTwo[:-1]
+  print(f"{dStrOne}: {dStrTwo}")
 
   # read lines, throwing away first one (header)
 # linelist = f.readlines()
@@ -43,11 +63,16 @@ def catCSVFile(infile,df,ct):
     timestamp = entry[TIMESTAMP]
     k  = entry[K]
 
-    str = "%s,%s,%s,%s" % ( \
-                         subj, \
-                         shot, \
-                         timestamp,\
-                         k)
+    # str = "%s,%s,%s,%s" % ( \
+    #                      subj, \
+    #                      shot, \
+    #                      timestamp,\
+    #                      k)
+    str = ""
+    for _,v in outfile.items():
+      str += f"{v},"
+    str = f"{str[:-1]},{timestamp},{k}"
+    
     print(str, file=df)
     ct += 1
 
@@ -55,23 +80,56 @@ def catCSVFile(infile,df,ct):
 
 ###############################################################################
 
-# clear out output file
-df = open("amfo.csv",'w')
-print("subj,shot,timestamp,K", file=df)
+def main(argv):
+  # clear out output file
+  try:
+    opts, args = getopt.getopt(argv, '', \
+                 ['outstruct='])
+  except getopt.GetoptError as err:
+    usage()
+    exit()
 
-dir = './data/'
+  file = None
+  files = []
+  indir = './'
+  outdir = './'
+  outstruct = 'subj-stim'
 
-# find all files in dir with .csv extension
-lst = [a for a in os.listdir(dir) if a.endswith('-amfo.dat')]
+  for opt,arg in opts:
+    opt = opt.lower()
+    if(opt != '--file' and opt != '--indir'):
+      arg = arg.lower()
 
-lineno = 1
+    if opt == '--outstruct':
+      outstruct = arg
+    else:
+      sys.argv[1:]
 
-for item in lst:
+  outstruct = outstruct.split("-")
 
-  file = dir + item
-  print('Processing ', file)
+  df = open("amfo.csv",'w')
+  header = ""
+  for item in outstruct:
+    header += f"{item},"
+  header += "timestamp,K"
+  print(header, file=df)
 
-  # cat csv files into one
-  lineno = catCSVFile(file,df,lineno)
+  dir = './data/'
 
-df.close()
+  # find all files in dir with .csv extension
+  lst = [a for a in os.listdir(dir) if a.endswith('-amfo.dat')]
+
+  lineno = 1
+
+  for item in lst:
+
+    file = dir + item
+    print('Processing ', file)
+
+    # cat csv files into one
+    lineno = catCSVFile(file,df,lineno,outstruct)
+
+  df.close()
+
+if __name__ == "__main__":
+  main(sys.argv[1:])

@@ -72,16 +72,16 @@ graph:
 	$(PYTHON) ./graph.py --smooth=$(SMOOTH) --indir=$(RAWDIR) --imgdir=$(IMGDIR) --dist=$(DIST) --screen=$(SCREEN) --width=$(WIDTH) --height=$(HEIGHT) --hertz=$(HERTZ) --dfdegree=$(DFDEGREE) --dfwidth=$(DFWIDTH) --xtiles=$(XTILES) --ytiles=$(YTILES) --baselineT=$(BASELINE_T) --endT=$(END_T) --vt=$(VT) --aoidir=$(AOIDIR) --aoifile="grid.sla" --outdir=$(OUTDIR) --pltdir=$(PLTDIR) --lastfix=$(LASTFIX)
 
 collate:
-	$(PYTHON) ./collate-amfo.py
-	$(PYTHON) ./collate-sacc.py
-	$(PYTHON) ./collate-msac.py
-	$(PYTHON) ./collate-msrt.py
-	$(PYTHON) ./collate-pICA.py
-	$(PYTHON) ./collate-pICALH.py
-	$(PYTHON) ./collate-bpcpd.py
-	$(PYTHON) ./collate-cbpcpd.py
+	$(PYTHON) ./collate-amfo.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-sacc.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-msac.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-msrt.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-pICA.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-pICALH.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-bpcpd.py --outstruct=$(OUTSTRUCT)
+	$(PYTHON) ./collate-cbpcpd.py --outstruct=$(OUTSTRUCT)
 	$(PYTHON) ./collate-fxtn.py --outstruct=$(OUTSTRUCT)
-	$(PYTHON) ./collate-fxtn-aois.py
+	$(PYTHON) ./collate-fxtn-aois.py --outstruct=$(OUTSTRUCT)
 
 stats:
 	R --vanilla < wm.R > wm.out

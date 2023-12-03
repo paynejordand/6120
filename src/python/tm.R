@@ -9,6 +9,8 @@ if(platform == "Windows") {
    }
    libpath <- c(lpath)
   .libPaths(libpath)
+} else{
+  libpath <- .libPaths()
 }
 
 source('custom.R')

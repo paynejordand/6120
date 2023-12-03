@@ -3,9 +3,9 @@
 import sys,os,getopt
 
 def usage():
-  print("Usage: python collate-fxtn.py " \
-        " --outstruct=?" \
-        "   The structure of the output file")
+  print(f"Usage: python {os.path.basename(__file__)} " \
+        " --outstruct=?\n" \
+        "   outstructt: The structure of the output file")
 
 def catCSVFile(infile,df,ct,outstruct):
   try:
@@ -26,9 +26,6 @@ def catCSVFile(infile,df,ct,outstruct):
 
   # extract stimulus name and subj id
   # filename now has the form 'date-rest_of_it', extract just the second part
-  test = filename.split("-")
-  print(f"DEBUG LINE: {test} == {outstruct}")
-
   filename = filename.split("-")
   outfile = {}
   for i in range(len(outstruct)):
@@ -100,9 +97,6 @@ def catCSVFile(infile,df,ct,outstruct):
 ###############################################################################
 
 def main(argv):
-# if not len(argv):
-#   usage()
-  
   try:
     opts, args = getopt.getopt(argv, '', \
                  ['outstruct='])
