@@ -24,6 +24,10 @@ library(ggeffects)
 library(patchwork)
 library(cowplot)
 library(RColorBrewer)
+library(lsmeans)
+library(rio)
+library(afex)
+library(knitr)
 ```
 
 ## Raw Data
@@ -35,7 +39,6 @@ raw.responses = read.csv("responses.csv")
 ## Clean up Data
 
 ```{r}
-
 trial.data = raw.responses %>%
   # Remove unnecessary columns and rows 
   select(-1:-17) %>%
@@ -54,7 +57,7 @@ trial.data = raw.responses %>%
     # Normalize responses from the pairwise comparisons
     across(TLX_W_1:TLX_W_15, ~ as.integer(as.integer(.x)/2)),
     across(TLX_Mental_1:TLX_Frustration_1, ~ as.integer(.x)),
-    across(TLX_Mental_1:TLX_Frustration_1, ~ ifelse(is.na(.x), 0, .x))
+    across(TLX_Mental_1:TLX_Frustration_1, ~ ifelse(is.na(.x), 0, .x)),
   ) %>%
   mutate(
     # Calculate weights
@@ -82,5 +85,124 @@ trial.data = raw.responses %>%
 ## Descriptive Statistics
 
 ```{r}
+summary = trial.data %>%
+  group_by(Task) %>%
+  summarize(count = n(),
+            across(TLX_Mental_1:TLX_Frustration_1, ~ mean(.x)),
+            across(finalUnweightedScore:finalWeightedScore, ~ mean(.x)))
+```
+
+## Plots
+
+### finalWeighted
+
+```{r}
+(fit <- aov_ez(data = trial.data,
+               id = "PID",
+               dv = "finalWeightedScore",
+               between = c('Task'),
+               type = 3,
+               factorize = FALSE))
+summary(fit)
+
+# nicer table
+kable(nice(fit,es="ges"))
+
+#describe(df$duration)
+
+(t <- lsmeans(fit, c('Task'), contr = 'pairwise'))
+tab <- summary(t$lsmeans)
+
+fdur.plot <- ggplot(tab,
+                    aes(x = Task, y = lsmean)) +
+                    geom_bar(position=position_dodge(), stat="identity",
+                          colour="#303030",fill="#d94801",alpha=.7) +
+#                         colour="#303030",fill="#045a8d",alpha=.7) +
+#                   scale_fill_brewer(palette="Blues") +
+                    scale_fill_brewer(palette="Oranges") +
+                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
+                                  width=.2, size=.3,
+                                  position=position_dodge(.9)) +
+		    theme_bw(base_size=18) + 
+                    ylab("Weighted TLX Score") +
+                    xlab('Task') +
+                    theme(legend.position = "none")
+
+plotName = "tlx_weighted.pdf"
+pdf(plotName, encoding="ISOLatin2")
+print(fdur.plot)
+dev.off()
+```
+
+### finalUnweighted
+
+```{r}
+(fit <- aov_ez(data = trial.data,
+               id = "PID",
+               dv = "finalUnweightedScore",
+               between = c('Task'),
+               type = 3,
+               factorize = FALSE))
+summary(fit)
+
+# nicer table
+kable(nice(fit,es="ges"))
+
+#describe(df$duration)
+
+(t <- lsmeans(fit, c('Task'), contr = 'pairwise'))
+tab <- summary(t$lsmeans)
+
+fdur.plot <- ggplot(tab,
+                    aes(x = Task, y = lsmean)) +
+                    geom_bar(position=position_dodge(), stat="identity",
+                          colour="#303030",fill="#d94801",alpha=.7) +
+#                         colour="#303030",fill="#045a8d",alpha=.7) +
+#                   scale_fill_brewer(palette="Blues") +
+                    scale_fill_brewer(palette="Oranges") +
+                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
+                                  width=.2, size=.3,
+                                  position=position_dodge(.9)) +
+		    theme_bw(base_size=18) + 
+                    ylab("Unweighted TLX Score") +
+                    xlab('Task') +
+                    theme(legend.position = "none")
+
+plotName = "tlx_unweighted.pdf"
+pdf(plotName, encoding="ISOLatin2")
+print(fdur.plot)
+dev.off()
+```
+
+## AOI Stuff
+
+```{r}
+raw.aoi = read.csv("fxtn-aois.csv")
+```
+
+```{r}
+aoi.data = raw.aoi
+
+summary = aoi.data %>% 
+  group_by(subj, stim, task, detectionstatus) %>%
+  summarise(changeFixated = length(which(aoi_order == 1)),
+            changeNotFixated = length(which(aoi_order != 1))) %>%
+  mutate(percentFixated = changeFixated / (changeFixated + changeNotFixated))
 
 ```
+
+False Negative
+
+2-set_2 - Visual - Fixated
+
+4-set_3 - No Task - Never Fixated
+
+12-set_2 - Audio - Fixated
+
+False Positive
+
+8-set_4
+
+6-set_4
+
+11-set_4

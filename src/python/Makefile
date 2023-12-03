@@ -43,7 +43,7 @@ YTILES = 4
 LASTFIX = 30
 # structure of the output file. Default is subj-stim. 
 # Seems like the rest of the codebase wants to have conditions in the file names
-OUTSTRUCT = subj-stim-task
+OUTSTRUCT = subj-stim-task-detectionStatus-time
 
 INDIR = ../../exp/data/
 AOIDIR = ../../aois/

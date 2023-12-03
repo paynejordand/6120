@@ -262,7 +262,7 @@ def main(argv):
   lastfix = 0
   for opt,arg in opts:
     opt = opt.lower()
-    if(opt != '--file' and opt != '--image'):
+    if(opt != '--file' and opt != '--image' and opt != '--outstruct'):
       arg = arg.lower()
 
     if opt == '--indir':

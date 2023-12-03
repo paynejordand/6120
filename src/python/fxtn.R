@@ -128,3 +128,52 @@ embedFonts(plotName, "pdfwrite", outfile = plotName,
             "/opt/local/share/texmf-texlive/fonts/type1/",
             "/usr/share/texmf-texlive/fonts/type1/urw/",
             "/usr/local/texlive/texmf-local/fonts/type1/urw/"))
+
+#..Time per task (detection only)..........................................................#
+dfOld <- df
+df <- filter(df, detectionstatus=="True")
+(fit <- aov_ez(data = df,
+               id = "subj",
+               dv = "time",
+               between = c('task'),
+               type = 3,
+               factorize = FALSE))
+summary(fit)
+
+# nicer table
+kable(nice(fit,es="ges"))
+
+describe(df$duration)
+
+(t <- lsmeans(fit, c('task'), contr = 'pairwise'))
+tab <- summary(t$lsmeans)
+
+fdur.plot <- ggplot(tab,
+                    aes(x = task, y = lsmean)) +
+                    geom_bar(position=position_dodge(), stat="identity",
+                          colour="#303030",fill="#d94801",alpha=.7) +
+#                         colour="#303030",fill="#045a8d",alpha=.7) +
+#                   scale_fill_brewer(palette="Blues") +
+                    scale_fill_brewer(palette="Oranges") +
+                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
+                                  width=.2, size=.3,
+                                  position=position_dodge(.9)) +
+		    theme_bw(base_size=18) + 
+                    ylab("Mean task duration (sec.)") +
+                    xlab('Task') +
+                    theme(legend.position = "none")
+
+plotName = "./figs/task_time.pdf"
+pdf(plotName, encoding="ISOLatin2")
+print(fdur.plot)
+dev.off()
+embedFonts(plotName, "pdfwrite", outfile = plotName,
+        fontpaths =
+          c("/sw/share/texmf-dist/fonts/type1/urw/",
+            "/usr/share/texmf/fonts/type1/urw/",
+            "/usr/local/teTeX/share/texmf-dist/fonts/type1/urw/",
+            "/opt/local/share/texmf-texlive/fonts/type1/",
+            "/usr/share/texmf-texlive/fonts/type1/urw/",
+            "/usr/local/texlive/texmf-local/fonts/type1/urw/"))       
+
+df <- dfOld

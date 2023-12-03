@@ -215,11 +215,13 @@ def hdf52raw(infile,outdir,width,height,dist,outstruct):
     stim.append(img)
   
   
-  # Assumes that all instances of cond are equal in the message table
+  # Assumes that all instances of cond have an equal amount of instances (e.g. once per trial)
   for cond in outstruct[2:]:
     for row in mestable.where('category == cond'):
-      conditions[cond] = row["text"].decode("utf-8")
+      val = row["text"].decode("utf-8")
       
+      conditions.setdefault(cond, []).append(val)
+      # conditions[cond].append(row["text"].decode("utf-8"))
 
   # pull out date string from session_meta_data table with matching
   # experiment_id and session_id
@@ -245,7 +247,7 @@ def hdf52raw(infile,outdir,width,height,dist,outstruct):
     outfilename = f"{subj}-{stim[i]}"
     if conditions != {}:
       for _,cond in conditions.items():
-        outfilename += f"-{cond}"
+        outfilename += f"-{cond[i]}"
     outfilename += ".raw"
     outfile = open(outdir + outfilename,'w+')
     print('Outfile: %s' % (outfilename))
@@ -330,7 +332,7 @@ def main(argv):
 
   for opt,arg in opts:
     opt = opt.lower()
-    if(opt != '--file' and opt != '--indir'):
+    if(opt != '--file' and opt != '--indir' and opt != '--outstruct'):
       arg = arg.lower()
 
     if opt == '--indir':

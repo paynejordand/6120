@@ -245,7 +245,7 @@ def main(argv):
 
   for opt,arg in opts:
     opt = opt.lower()
-    if(opt != '--file'):
+    if(opt != '--file' and opt != '--outstruct'):
       arg = arg.lower()
 
     if opt == '--indir':
