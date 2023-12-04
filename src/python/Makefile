@@ -87,6 +87,7 @@ stats:
 	R --vanilla < wm.R > wm.out
 	R --vanilla --args 5 < tm.R > tm.out
 	R --vanilla < fxtn.R > fxtn.out
+	R --vanilla < fxtn-aoi.R > fxtn-aoi.out
 
 clean:
 	rm -f *.pyc

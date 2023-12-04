@@ -16,7 +16,7 @@ if(platform == "Windows") {
 source('custom.R')
 
 #load.libraries(c('emmeans','sciplot','ez','psych','reshape','plyr','ggplot2','afex','dplyr','pastecs'),libpath)
-load.libraries(c('emmeans','sciplot','psych','reshape','plyr','ggplot2','afex','dplyr','pastecs'),libpath)
+load.libraries(c('tidyverse','emmeans','sciplot','psych','reshape','ggplot2','afex','pastecs'),libpath)
 
 pdf.options(family="NimbusSan", useDingbats=FALSE)
 

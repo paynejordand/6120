@@ -16,7 +16,7 @@ if(platform == "Windows") {
 source('custom.R')
 
 # load plyr before dplyr
-load.libraries(c('rio','psych','ggplot2','afex','plyr','dplyr','lsmeans','knitr'),libpath)
+load.libraries(c('tidyverse','rio','psych','ggplot2','afex','lsmeans','knitr'),libpath)
 
 # for pdf plots
 pdf.options(family="NimbusSan", useDingbats=FALSE)
