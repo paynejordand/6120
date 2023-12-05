@@ -23,7 +23,7 @@ pdf.options(family="NimbusSan", useDingbats=FALSE)
 
 raw.aoi <- read.csv('fxtn-aois.csv')
 
-# Detection Status and percentFixated (only stimulit that had a change) #############################################
+# Detection Status and percentFixated (only stimuli that had a change) #############################################
 df = raw.aoi %>%
     group_by(subj, detectionstatus) %>%
     filter(stim != "set_4") %>%
@@ -113,7 +113,7 @@ fdur.plot <- ggplot(tab,
                                   width=.2, size=.3,
                                   position=position_dodge(.9)) +
 		    theme_bw(base_size=18) + 
-                    ylab("Changed AOI Fixation Percentage") +
+                    ylab("Changed AOI Fixation Percentage (%)") +
                     xlab('Change Detected') +
                     theme(legend.position = "none") + 
   scale_y_continuous(limits = c(0, NA), oob = scales::squish)
@@ -217,7 +217,7 @@ fdur.plot <- ggplot(tab,
                                   width=.2, size=.3,
                                   position=position_dodge(.9)) +
 		    theme_bw(base_size=18) + 
-                    ylab("Changed AOI Fixation Percentage") +
+                    ylab("Mean fixation duration (ms.)") +
                     xlab('Stimulus') +
                     theme(legend.position = "none")
 
@@ -265,8 +265,8 @@ fdur.plot <- ggplot(tab,
                                   width=.2, size=.3,
                                   position=position_dodge(.9)) +
 		    theme_bw(base_size=18) + 
-                    ylab("Changed AOI Fixation Percentage") +
-                    xlab('Change Detected') +
+                    ylab("Changed AOI Mean Fixation Duration (ms.)") +
+                    xlab('Stimulus') +
                     theme(legend.position = "none")
 
 plotName = "./figs/changedAOI-stim-duration.pdf"
