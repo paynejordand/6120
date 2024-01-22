@@ -132,6 +132,7 @@ embedFonts(plotName, "pdfwrite", outfile = plotName,
 #..Time per task (detection only)..........................................................#
 dfOld <- df
 df <- filter(df, detectionstatus=="True")
+df <- filter(df, stim != "set_4")
 (fit <- aov_ez(data = df,
                id = "subj",
                dv = "time",

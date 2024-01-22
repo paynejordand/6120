@@ -40,7 +40,7 @@ XTILES = 8
 YTILES = 4
 
 # Last X number of fixations
-LASTFIX = 30
+LASTFIX = 20
 # structure of the output file. Default is subj-stim. 
 # Seems like the rest of the codebase wants to have conditions in the file names
 OUTSTRUCT = subj-stim-task-detectionStatus-time

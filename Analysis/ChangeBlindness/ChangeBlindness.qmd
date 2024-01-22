@@ -28,6 +28,7 @@ library(lsmeans)
 library(rio)
 library(afex)
 library(knitr)
+library(Matrix)
 ```
 
 ## Raw Data
@@ -85,11 +86,35 @@ trial.data = raw.responses %>%
 ## Descriptive Statistics
 
 ```{r}
-summary = trial.data %>%
+trial.data %>%
   group_by(Task) %>%
   summarize(count = n(),
             across(TLX_Mental_1:TLX_Frustration_1, ~ mean(.x)),
             across(finalUnweightedScore:finalWeightedScore, ~ mean(.x)))
+
+trial.data %>%
+  group_by(CorrectiveLenses) %>%
+  summarize(count = n())
+
+trial.data %>%
+  mutate(
+    Age = as.integer(Age)
+  ) %>%
+  summarize(Age = mean(Age, na.rm = TRUE))
+
+trial.data %>%
+  mutate(
+    Age = as.integer(Age)
+  ) %>%
+  summarize(minAge = min(Age, na.rm = TRUE),
+            maxAge = max(Age, na.rm = TRUE))
+
+trial.data %>%
+  mutate(
+    AverageDrivingHours = as.integer(AverageDrivingHours)
+  ) %>%
+  summarize(hours = mean(AverageDrivingHours))
+
 ```
 
 ## Plots
@@ -174,198 +199,108 @@ print(fdur.plot)
 dev.off()
 ```
 
+### Trying different individual scores
+
+mental, temporal, performance, effort, frustration
+
+no significance for any
+
+```{r}
+(fit <- aov_ez(data = trial.data,
+               id = "PID",
+               dv = "TLX_Effort_1",
+               between = c('Task'),
+               type = 3,
+               factorize = FALSE))
+summary(fit)
+
+# nicer table
+kable(nice(fit,es="ges"))
+
+#describe(df$duration)
+
+(t <- lsmeans(fit, c('Task'), contr = 'pairwise'))
+tab <- summary(t$lsmeans)
+
+fdur.plot <- ggplot(tab,
+                    aes(x = Task, y = lsmean)) +
+                    geom_bar(position=position_dodge(), stat="identity",
+                          colour="#303030",fill="#d94801",alpha=.7) +
+#                         colour="#303030",fill="#045a8d",alpha=.7) +
+#                   scale_fill_brewer(palette="Blues") +
+                    scale_fill_brewer(palette="Oranges") +
+                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
+                                  width=.2, size=.3,
+                                  position=position_dodge(.9)) +
+		    theme_bw(base_size=18) + 
+                    ylab("Unweighted TLX Score") +
+                    xlab('Task') +
+                    theme(legend.position = "none")
+
+plotName = "tlx.pdf"
+pdf(plotName, encoding="ISOLatin2")
+print(fdur.plot)
+dev.off()
+```
+
 ## AOI Stuff
 
 ```{r}
 raw.aoi = read.csv("fxtn-aois.csv")
+
+raw.aoi %>%
+  group_by(task) %>%
+  summarise(sum = sum(duration),
+            mean = mean(duration))
+
+raw.aoi %>%
+  group_by(task) %>%
+  summarise(count = n())
+
+raw.aoi %>%
+  filter(stim != "set_4") %>%
+  group_by(subj, stim, detectionstatus, aoi_order, .drop = FALSE) %>%
+  complete(fill = list(duration = 0)) %>%
+  count(.drop = FALSE) %>% filter(n == 0)
+
+raw.aoi %>%
+  mutate(aoi_order = as.factor(aoi_order)) %>%
+  count(subj, stim, detectionstatus, aoi_order, .drop = FALSE) %>%
+  filter(stim != "set_4",
+         detectionstatus == "True",
+         aoi_order == 1,
+         n == 0)
+
+raw.aoi %>%
+  filter(stim == "set_4",
+         detectionstatus == "True") %>%
+  group_by(subj, task, detectionstatus) %>%
+  summarise(count = n())
 ```
 
 ### Detection Status and percentFixated (only stimuli that had a change)
 
-```{r}
-aoi.data = raw.aoi
-
-summary.aoi = aoi.data %>% 
-  group_by(subj, detectionstatus) %>%
-  filter(stim != "set_4") %>%
-  summarise(changeFixated = length(which(aoi_order == 1)),
-            changeNotFixated = length(which(aoi_order != 1))) %>%
-  mutate(percentFixated = changeFixated / (changeFixated + changeNotFixated))
-
-
-(fit <- aov_ez(data = summary.aoi,
-               id = "subj",
-               dv = "percentFixated",
-               between = c('detectionstatus'),
-               type = 3,
-               factorize = FALSE))
-summary(fit)
-
-# nicer table
-kable(nice(fit,es="ges"))
-
-#describe(df$duration)
-
-(t <- lsmeans(fit, c('detectionstatus'), contr = 'pairwise'))
-tab <- summary(t$lsmeans)
-
-fdur.plot <- ggplot(tab,
-                    aes(x = detectionstatus, y = lsmean)) +
-                    geom_bar(position=position_dodge(), stat="identity",
-                          colour="#303030",fill="#d94801",alpha=.7) +
-#                         colour="#303030",fill="#045a8d",alpha=.7) +
-#                   scale_fill_brewer(palette="Blues") +
-                    scale_fill_brewer(palette="Oranges") +
-                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
-                                  width=.2, size=.3,
-                                  position=position_dodge(.9)) +
-		    theme_bw(base_size=18) + 
-                    ylab("Change AOI Fixation Percentage") +
-                    xlab('Change Detected') +
-                    theme(legend.position = "none")
-
-plotName = "fixations-detection.pdf"
-pdf(plotName, encoding="ISOLatin2")
-print(fdur.plot)
-dev.off()
-```
-
-### Last X Fixations
+Should probably do a buildmer/lme thing for this
 
 ```{r}
-aoi.data.lastX = aoi.data %>%
+df = raw.aoi %>%  
   filter(stim != "set_4") %>%
   group_by(subj, stim) %>%
-  slice(tail(row_number(), 10)) %>%
-  ungroup() %>%
-  group_by(subj, detectionstatus) %>%
-  summarise(changeFixated = length(which(aoi_order == 1)),
-            changeNotFixated = length(which(aoi_order != 1))) %>%
-  mutate(percentFixated = changeFixated / (changeFixated + changeNotFixated))
+    slice(tail(row_number(), 10)) %>%
+    ungroup() %>%
+    group_by(subj, detectionstatus) %>%
+    summarise(changeFixated = length(which(aoi_order == 1)),
+                changeNotFixated = length(which(aoi_order != 1)),
+              duration = sum(duration[which(aoi_order == 1)])) %>%
+    mutate(percentFixated = changeFixated / (changeFixated + changeNotFixated),
+           detectionstatus = as.factor(detectionstatus))
 
-(fit <- aov_ez(data = aoi.data.lastX,
-               id = "subj",
-               dv = "percentFixated",
-               between = c('detectionstatus'),
-               type = 3,
-               factorize = FALSE))
-summary(fit)
 
-# nicer table
-kable(nice(fit,es="ges"))
+aoi.model = detectionstatus ~ 1 + duration + percentFixated + (1|subj)
+m1 = glmer(aoi.model,
+           data = df,
+           family = binomial("logit"))
 
-#describe(df$duration)
-
-(t <- lsmeans(fit, c('detectionstatus'), contr = 'pairwise'))
-tab <- summary(t$lsmeans)
-
-fdur.plot <- ggplot(tab,
-                    aes(x = detectionstatus, y = lsmean)) +
-                    geom_bar(position=position_dodge(), stat="identity",
-                          colour="#303030",fill="#d94801",alpha=.7) +
-#                         colour="#303030",fill="#045a8d",alpha=.7) +
-#                   scale_fill_brewer(palette="Blues") +
-                    scale_fill_brewer(palette="Oranges") +
-                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
-                                  width=.2, size=.3,
-                                  position=position_dodge(.9)) +
-		    theme_bw(base_size=18) + 
-                    ylab("Change AOI Fixation Percentage") +
-                    xlab('Change Detected') +
-                    theme(legend.position = "none") + 
-  scale_y_continuous(limits = c(0, NA), oob = scales::squish)
-
-plotName = "lastX-fixations-detection.pdf"
-pdf(plotName, encoding="ISOLatin2")
-print(fdur.plot)
-dev.off()
-```
-
-```{r}
-df = raw.aoi %>%
-  filter(aoi_order == 1)
-
-(fit <- aov_ez(data = df,
-               id = "subj",
-               dv = "duration",
-               between = c('stim'),
-               type = 3,
-               factorize = FALSE))
-summary(fit)
-
-# nicer table
-kable(nice(fit,es="ges"))
-
-#describe(df$duration)
-
-(t <- lsmeans(fit, c('stim'), contr = 'pairwise'))
-tab <- summary(t$lsmeans)
-
-fdur.plot <- ggplot(tab,
-                    aes(x = stim, y = lsmean)) +
-                    geom_bar(position=position_dodge(), stat="identity",
-                          colour="#303030",fill="#d94801",alpha=.7) +
-#                         colour="#303030",fill="#045a8d",alpha=.7) +
-#                   scale_fill_brewer(palette="Blues") +
-                    scale_fill_brewer(palette="Oranges") +
-                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
-                                  width=.2, size=.3,
-                                  position=position_dodge(.9)) +
-		    theme_bw(base_size=18) + 
-                    ylab("Changed AOI Fixation Percentage") +
-                    xlab('Change Detected') +
-                    theme(legend.position = "none")
-
-plotName = "temp.pdf"
-pdf(plotName, encoding="ISOLatin2")
-print(fdur.plot)
-dev.off()
-embedFonts(plotName, "pdfwrite", outfile = plotName,
-        fontpaths =
-          c("/sw/share/texmf-dist/fonts/type1/urw/",
-            "/usr/share/texmf/fonts/type1/urw/",
-            "/usr/local/teTeX/share/texmf-dist/fonts/type1/urw/",
-            "/opt/local/share/texmf-texlive/fonts/type1/",
-            "/usr/share/texmf-texlive/fonts/type1/urw/",
-            "/usr/local/texlive/texmf-local/fonts/type1/urw/"))
-```
-
-### Mean Fixation Duration
-
-```{r}
-aoi.data.means = raw.aoi
-
-(fit <- aov_ez(data = aoi.data.means,
-               id = "subj",
-               dv = "duration",
-               within = c('aoi_order'),
-               type = 3,
-               factorize = FALSE, na.rm = FALSE))
-summary(fit)
-
-# nicer table
-kable(nice(fit,es="ges"))
-
-(t <- lsmeans(fit, c('aoi_order'), contr = 'pairwise'))
-tab <- summary(t$lsmeans)
-
-samp.plot <- ggplot(tab,
-                    aes(x = aoi_order, y = lsmean)) +
-                    geom_bar(position=position_dodge(), stat="identity",
-                          colour="#303030",fill="#d94801",alpha=.7) +
-#                         colour="#303030",fill="#045a8d",alpha=.7) +
-#                   scale_fill_brewer(palette="Blues") +
-                    scale_fill_brewer(palette="Oranges") +
-                    geom_errorbar(aes(ymin=lsmean-SE, ymax=lsmean+SE),
-                                  width=.2, size=.3,
-                                  position=position_dodge(.9)) +
-		    theme_bw(base_size=18) + 
-                    ylab("Mean fixation duration (ms.)") +
-                    xlab('AOI') +
-                    theme(legend.position = "none")
-
-plotName = "detection-means.pdf"
-pdf(plotName, encoding="ISOLatin2")
-print(samp.plot)
-dev.off()
+summary(m1)
+check_model(m1)
 ```
