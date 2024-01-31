@@ -153,7 +153,7 @@ fdur.plot <- ggplot(tab,
                     xlab('Task') +
                     theme(legend.position = "none")
 
-plotName = "tlx_weighted.pdf"
+plotName = "figs/tlx_weighted.pdf"
 pdf(plotName, encoding="ISOLatin2")
 print(fdur.plot)
 dev.off()
@@ -193,7 +193,7 @@ fdur.plot <- ggplot(tab,
                     xlab('Task') +
                     theme(legend.position = "none")
 
-plotName = "tlx_unweighted.pdf"
+plotName = "figs/tlx_unweighted.pdf"
 pdf(plotName, encoding="ISOLatin2")
 print(fdur.plot)
 dev.off()
@@ -237,7 +237,7 @@ fdur.plot <- ggplot(tab,
                     xlab('Task') +
                     theme(legend.position = "none")
 
-plotName = "tlx.pdf"
+plotName = "figs/tlx.pdf"
 pdf(plotName, encoding="ISOLatin2")
 print(fdur.plot)
 dev.off()

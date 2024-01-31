@@ -1,54 +1,54 @@
 exp/data/
 
 # History files
-Analysis/ChangeBlindness/.Rhistory
-Analysis/ChangeBlindness/.Rapp.history
+**/.Rhistory
+**/.Rapp.history
 
 # Session Data files
-Analysis/ChangeBlindness/.RData
-Analysis/ChangeBlindness/.RDataTmp
+**/.RData
+**/.RDataTmp
 
 # User-specific files
-Analysis/ChangeBlindness/.Ruserdata
+**/.Ruserdata
 
 # Example code in package build process
-Analysis/ChangeBlindness/*-Ex.R
+**/*-Ex.R
 
 # Output files from R CMD build
-Analysis/ChangeBlindness/*.tar.gz
+**/*.tar.gz
 
 # Output files from R CMD check
-Analysis/ChangeBlindness/*.Rcheck/
+**/*.Rcheck/
 
 # RStudio files
-Analysis/ChangeBlindness/.Rproj.user/
+**/.Rproj.user/
 
 # produced vignettes
-Analysis/ChangeBlindness/vignettes/*.html
-Analysis/ChangeBlindness/vignettes/*.pdf
+**/vignettes/*.html
+**/vignettes/*.pdf
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-Analysis/ChangeBlindness/.httr-oauth
+**/.httr-oauth
 
 # knitr and R markdown default cache directories
-Analysis/ChangeBlindness/*_cache/
-Analysis/ChangeBlindness/cache/
+**/*_cache/
+**/cache/
 
 # Temporary files created by R markdown
-Analysis/ChangeBlindness/*.utf8.md
-Analysis/ChangeBlindness/*.knit.md
+**/*.utf8.md
+**/*.knit.md
 
 # R Environment Variables
-Analysis/ChangeBlindness/.Renviron
+**/.Renviron
 
 # pkgdown site
-Analysis/ChangeBlindness/docs/
+**/docs/
 
 # translation temp files
-Analysis/ChangeBlindness/po/*~
+**/po/*~
 
 # RStudio Connect folder
-Analysis/ChangeBlindness/rsconnect/
+**/rsconnect/
 exp/david_data.zip
 
 # Files generated from python scripts
@@ -59,4 +59,4 @@ src/python/figs/
 src/python/__pycache__/
 src/python/*.csv
 src/python/*.out
-Analysis/ChangeBlindness/*.pdf
+**/*.pdf
